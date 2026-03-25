@@ -1,0 +1,691 @@
+=== unterminated object
+{"a": 1
+---
+Unexpected end of input on line 1.
+
+    {"a": 1
+    .......^
+
+=== unterminated array
+[1, 2
+---
+Unexpected end of input on line 1.
+
+    [1, 2
+    .....^
+
+=== unterminated string
+"Hello
+---
+Unexpected character "\n" on line 1.
+
+    "Hello
+    ......^
+
+=== newline in string literal
+"line1
+line2"
+---
+Unexpected character "\n" on line 1.
+
+    "line1
+    ......^
+
+
+=== backslash at end of string
+"abc\
+---
+Invalid escape sequence "\n" on line 1.
+
+    "abc\
+    .....^
+
+=== invalid escape sequence
+"bad \q escape"
+---
+Invalid escape sequence "q" on line 1.
+
+    "bad \q escape"
+    ......^
+
+=== invalid unicode escape (JSON style)
+"\u0022"
+---
+Invalid escape sequence "0" (expected "{") on line 1.
+
+    "\u0022"
+    ...^
+
+=== invalid unicode escape (now closed)
+"\u{263"
+---
+Invalid escape sequence "\"" on line 1.
+
+    "\u{263"
+    .......^
+
+=== invalid unicode escape (bad hex)
+"\u{26G4}"
+---
+Invalid escape sequence "G" on line 1.
+
+    "\u{26G4}"
+    ......^
+
+=== invalid unicode escape (too short)
+"\u{}"
+---
+Invalid escape sequence on line 1.
+
+    "\u{}"
+    ....^
+
+=== invalid unicode escape (too big)
+"\u{111FFFA}"
+---
+Invalid escape sequence (too many hex digits) on line 1.
+
+    "\u{111FFFA}"
+    ..........^
+
+=== invalid unicode escape (outside the valid Unicode range)
+"\u{110000}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{110000}"
+    ..........^
+
+=== newline in string literal
+"line1
+line2"
+---
+Unexpected character "\n" on line 1.
+
+    "line1
+    ......^
+
+=== multiple values in a single document
+{}[]
+---
+Unexpected character "[" on line 1.
+
+    {}[]
+    ..^
+
+=== object missing colon
+{"a" 1}
+---
+Unexpected character "1" on line 1.
+
+    {"a" 1}
+    .....^
+
+=== object double colon
+{"a"::1}
+---
+Unexpected character ":" on line 1.
+
+    {"a"::1}
+    .....^
+
+=== object key without value
+{"a":}
+---
+Unexpected character "}" on line 1.
+
+    {"a":}
+    .....^
+
+=== value without key
+{:1}
+---
+Unexpected character ":" on line 1.
+
+    {:1}
+    .^
+
+=== single quotes not allowed
+{'a': 1}
+---
+Unexpected character "'" on line 1.
+
+    {'a': 1}
+    .^
+
+=== missing separator between pairs (same line)
+{"a":1 "b":2}
+---
+Expected comma or newline between key-value pairs on line 1.
+
+    {"a":1 "b":2}
+    .......^
+
+=== leading comma in array
+[,1]
+---
+Unexpected character "," on line 1.
+
+    [,1]
+    .^
+
+=== leading comma in object
+{,"a":1}
+---
+Unexpected character "," on line 1.
+
+    {,"a":1}
+    .^
+
+=== double comma in array
+[1,,2]
+---
+Unexpected character "," on line 1.
+
+    [1,,2]
+    ...^
+
+=== missing separator in array
+[1 2]
+---
+Expected comma or newline between values on line 1.
+
+    [1 2]
+    ...^
+
+=== trailing data after value
+{"a":1} {"b":2}
+---
+Unexpected character "{" on line 1.
+
+    {"a":1} {"b":2}
+    ........^
+
+=== invalid number: leading zero
+01
+---
+Unexpected character "1" on line 1.
+
+    01
+    .^
+
+=== invalid number: explicit plus sign
++1
+---
+Unexpected character "+" on line 1.
+
+    +1
+    ^
+
+=== invalid number: leading decimal point
+.5
+---
+Unexpected character "." on line 1.
+
+    .5
+    ^
+
+=== invalid digit after minus
+-a
+---
+Unexpected character "a" on line 1.
+
+    -a
+    .^
+
+=== invalid digit in float
+1.a
+---
+Unexpected character "a" on line 1.
+
+    1.a
+    ..^
+
+=== invalid exponent (missing digits)
+1e
+---
+Unexpected character "\n" on line 1.
+
+    1e
+    ..^
+
+=== invalid exponent sign only
+1e+
+---
+Unexpected character "\n" on line 1.
+
+    1e+
+    ...^
+
+=== NaN not allowed
+NaN
+---
+Unexpected character "N" on line 1.
+
+    NaN
+    ^
+
+=== Infinity not allowed
+Infinity
+---
+Unexpected character "I" on line 1.
+
+    Infinity
+    ^
+
+=== colon after complete value
+{"a":1}:2
+---
+Unexpected character ":" on line 1.
+
+    {"a":1}:2
+    .......^
+
+=== whitespace only
+
+---
+Unexpected end of input on line 1.
+
+
+    ^
+
+=== comment without value
+# comment only
+---
+Unexpected end of input on line 1.
+
+    # comment only
+    ..............^
+
+=== wrong keyword
+falze
+---
+Unexpected character "z" on line 1.
+
+    falze
+    ...^
+
+=== character after a keyword
+nullnull
+---
+Unexpected character "n" on line 1.
+
+    nullnull
+    ....^
+
+=== identifier with dot (invalid char)
+{a.b:1}
+---
+Unexpected character "." on line 1.
+
+    {a.b:1}
+    ..^
+
+=== identifier with slash (invalid char)
+{a/b:1}
+---
+Unexpected character "/" on line 1.
+
+    {a/b:1}
+    ..^
+
+=== identifier with at-sign (invalid char)
+{foo@bar:1}
+---
+Unexpected character "@" on line 1.
+
+    {foo@bar:1}
+    ....^
+
+=== space between identifier and value (missing colon)
+{a 1}
+---
+Unexpected character "1" on line 1.
+
+    {a 1}
+    ...^
+
+=== missing separator between pairs (identifiers, same line)
+{a:1 b:2}
+---
+Expected comma or newline between key-value pairs on line 1.
+
+    {a:1 b:2}
+    .....^
+
+=== bare identifier as a top-level value (not allowed)
+foo
+---
+Unexpected character "o" on line 1.
+
+    foo
+    .^
+
+=== identifier used as value (must be quoted or literal)
+{key: value}
+---
+Unexpected character "v" on line 1.
+
+    {key: value}
+    ......^
+
+=== identifier as array element (not allowed as bare value)
+[foo]
+---
+Unexpected character "o" on line 1.
+
+    [foo]
+    ..^
+
+=== non-ASCII letter in identifier key
+{ä:1}
+---
+Unexpected character "ä" on line 1.
+
+    {ä:1}
+    .^
+
+=== leading dot before identifier
+{.a:1}
+---
+Unexpected character "." on line 1.
+
+    {.a:1}
+    .^
+
+=== emoji in identifier key
+{😀:1}
+---
+Unexpected character "\ud83d" on line 1.
+
+    {😀:1}
+    .^
+
+=== digit+dot in identifier key (dot invalid)
+{0.1:1}
+---
+Unexpected character "." on line 1.
+
+    {0.1:1}
+    ..^
+
+=== exponent-like key with plus (plus invalid in identifier)
+{1e+2:1}
+---
+Unexpected character "+" on line 1.
+
+    {1e+2:1}
+    ...^
+
+=== dollar sign in identifier
+{a$:1}
+---
+Unexpected character "$" on line 1.
+
+    {a$:1}
+    ..^
+
+=== decimal point in digit-only identifier
+{1234.5: 1}
+---
+Unexpected character "." on line 1.
+
+    {1234.5: 1}
+    .....^
+
+=== identifier followed by comma instead of colon
+{a,}
+---
+Unexpected character "," on line 1.
+
+    {a,}
+    ..^
+
+=== identifier key without value
+{a:}
+---
+Unexpected character "}" on line 1.
+
+    {a:}
+    ...^
+
+=== object in array missing separator (between elements)
+[{a:1} {b:2}]
+---
+Expected comma or newline between values on line 1.
+
+    [{a:1} {b:2}]
+    .......^
+
+=== tilde in identifier (invalid char)
+{a~b:1}
+---
+Unexpected character "~" on line 1.
+
+    {a~b:1}
+    ..^
+
+=== double colon after identifier key
+{a::1}
+---
+Unexpected character ":" on line 1.
+
+    {a::1}
+    ...^
+
+=== backslash in identifier key
+{a\b:1}
+---
+Unexpected character "\\" on line 1.
+
+    {a\b:1}
+    ..^
+
+=== array object missing colon after identifier key
+[{a 1}]
+---
+Unexpected character "1" on line 1.
+
+    [{a 1}]
+    ....^
+
+=== raw string without closing
+"""
+foo
+---
+Unexpected end of input on line 2.
+
+    foo
+    ...^
+
+=== empty raw single-line
+""""""
+---
+Raw strings cannot be empty on line 1.
+
+    """"""
+    ......^
+
+=== duplicate keys
+{
+  foo: 1
+  foo: 2
+}
+---
+Duplicate key "foo" on line 3.
+
+      foo: 2
+    ..^
+
+=== case-sensitive: True is not a keyword
+True
+---
+Unexpected character "T" on line 1.
+
+    True
+    ^
+
+=== case-sensitive: TRUE is not a keyword
+TRUE
+---
+Unexpected character "T" on line 1.
+
+    TRUE
+    ^
+
+=== case-sensitive: False is not a keyword
+False
+---
+Unexpected character "F" on line 1.
+
+    False
+    ^
+
+=== case-sensitive: FALSE is not a keyword
+FALSE
+---
+Unexpected character "F" on line 1.
+
+    FALSE
+    ^
+
+=== case-sensitive: Null is not a keyword
+Null
+---
+Unexpected character "N" on line 1.
+
+    Null
+    ^
+
+=== case-sensitive: NULL is not a keyword
+NULL
+---
+Unexpected character "N" on line 1.
+
+    NULL
+    ^
+
+=== duplicate keys
+{
+  foo: 1
+  "foo": 2
+}
+---
+Duplicate key "foo" on line 3.
+
+      "foo": 2
+    ..^
+
+=== unicode escape: high surrogate start U+D800
+"\u{D800}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{D800}"
+    ........^
+
+=== unicode escape: high surrogate end U+DBFF
+"\u{DBFF}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{DBFF}"
+    ........^
+
+=== unicode escape: low surrogate start U+DC00
+"\u{DC00}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{DC00}"
+    ........^
+
+=== unicode escape: low surrogate end U+DFFF
+"\u{DFFF}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{DFFF}"
+    ........^
+
+=== unicode escape: middle of surrogate range U+D900
+"\u{D900}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{D900}"
+    ........^
+
+=== unicode escape: 6 hex digits above max code point U+FFFFFF
+"\u{FFFFFF}"
+---
+Invalid escape sequence (out of range) on line 1.
+
+    "\u{FFFFFF}"
+    ..........^
+
+=== invalid escape: lowercase hex digits not accepted
+"\u{263a}"
+---
+Invalid escape sequence "a" on line 1.
+
+    "\u{263a}"
+    .......^
+
+=== invalid escape: \b not supported (unlike JSON)
+"\b"
+---
+Invalid escape sequence "b" on line 1.
+
+    "\b"
+    ..^
+
+=== invalid escape: \f not supported (unlike JSON)
+"\f"
+---
+Invalid escape sequence "f" on line 1.
+
+    "\f"
+    ..^
+
+=== invalid escape: \/ solidus not supported (unlike JSON)
+"\/"
+---
+Invalid escape sequence "/" on line 1.
+
+    "\/"
+    ..^
+
+=== invalid escape: \v not supported
+"\v"
+---
+Invalid escape sequence "v" on line 1.
+
+    "\v"
+    ..^
+
+=== invalid escape: \0 not supported
+"\0"
+---
+Invalid escape sequence "0" on line 1.
+
+    "\0"
+    ..^
+
+=== invalid escape: \a not supported
+"\a"
+---
+Invalid escape sequence "a" on line 1.
+
+    "\a"
+    ..^
+
+=== partial keyword in object value
+{a: trux}
+---
+Unexpected character "x" on line 1.
+
+=== invalid escape in quoted key
+{"\q": 1}
+---
+Invalid escape sequence "q" on line 1.

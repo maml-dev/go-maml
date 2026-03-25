@@ -1,0 +1,959 @@
+=== empty object
+{}
+---
+{}
+
+=== empty array
+[]
+---
+[]
+
+=== null literal
+null
+---
+null
+
+=== boolean true
+true
+---
+true
+
+=== boolean false
+false
+---
+false
+
+=== integer zero
+0
+---
+0
+
+=== integer negative zero
+-0
+---
+-0
+
+=== integer positive
+123
+---
+123
+
+=== integer negative
+-456
+---
+-456
+
+=== integer 2^53-1 (safe JS max)
+9007199254740991
+---
+9007199254740991
+
+=== float simple
+3.14
+---
+3.14
+
+=== float negative
+-0.125
+---
+-0.125
+
+=== float many fraction digits
+1.000000000123
+---
+1.000000000123
+
+=== float with exponent (lowercase)
+1e6
+---
+1e6
+
+=== float with exponent (uppercase, positive sign)
+2E+8
+---
+2E+8
+
+=== float with negative exponent
+7e-3
+---
+7e-3
+
+=== float decimal mantissa with exponent
+6.022e23
+---
+6.022e23
+
+=== empty string
+""
+---
+""
+
+=== simple ascii string
+"Hello, world!"
+---
+"Hello, world!"
+
+=== string with escaped quote
+"He said: \"JSON is great.\""
+---
+"He said: \"JSON is great.\""
+
+=== string with backslash
+"Path C:\\\\Program Files\\\\App"
+---
+"Path C:\\\\Program Files\\\\App"
+
+=== string with solidus
+"Use https://maml.dev/"
+---
+"Use https://maml.dev/"
+
+=== string containing all compact escape sequence
+"\n\r\t\\\""
+---
+"\n\r\t\\\""
+
+=== string with unicode escape
+"\u{263A}"
+---
+"\u263A"
+
+=== string with very short unicode escape
+"\u{C}"
+---
+"\u000C"
+
+=== string with emoji
+"\u{1F95D}"
+---
+"🥝"
+
+=== string with null and unit separators
+"\u{0000}\u{001F}"
+---
+"\u0000\u001F"
+
+=== string with max unicode range
+"\u{10FFFF}"
+---
+"\uDBFF\uDFFF"
+
+=== multilingual string
+"Привет 世界 مرحبا"
+---
+"Привет 世界 مرحبا"
+
+=== simple object one pair
+{"a":1}
+---
+{"a":1}
+
+=== object with multiple types
+{"n":null,"t":true,"f":false,"i":42,"d":3.5,"s":"ok"}
+---
+{"n":null,"t":true,"f":false,"i":42,"d":3.5,"s":"ok"}
+
+=== nested object
+{"outer":{"inner":{"key":"value"}}}
+---
+{"outer":{"inner":{"key":"value"}}}
+
+=== object with empty key
+{"": "empty-key"}
+---
+{"": "empty-key"}
+
+=== object with special character keys
+{"a-b":1,"a b":2,"a:b":3,"a,b":4}
+---
+{"a-b":1,"a b":2,"a:b":3,"a,b":4}
+
+=== object with escaped newline in key
+{"a\nb":"c"}
+---
+{"a\nb":"c"}
+
+=== array single element
+[1]
+---
+[1]
+
+=== array of integers
+[0,1,2,3,4,5,6,7,8,9]
+---
+[0,1,2,3,4,5,6,7,8,9]
+
+=== array of booleans
+[true,false,true,false]
+---
+[true,false,true,false]
+
+=== array of nulls
+[null,null,null]
+---
+[null,null,null]
+
+=== array mixed types
+[null,true,42,3.14,"x",{"a":1},[2,3]]
+---
+[null,true,42,3.14,"x",{"a":1},[2,3]]
+
+=== array of arrays
+[[1,2],[3,4],[5,6]]
+---
+[[1,2],[3,4],[5,6]]
+
+=== whitespace variations (object)
+{  "a" : 1 , "b" :
+ [ 1 , 2 , 3 ] ,
+ "c" :
+ { "d" : "e" }  }
+---
+{"a": 1, "b": [ 1 , 2 , 3 ], "c": { "d": "e" }}
+
+=== whitespace variations (array)
+[  1 ,  { "x" : 2 }  , [ 3 , 4 ]  ]
+---
+[1, { "x": 2 }, [ 3, 4 ]]
+
+=== whitespace after object
+{}
+
+---
+{}
+
+=== object with unicode and escapes mixed
+{"text":"Line1\nLine2\u{263A}","emoji":"\u{1F680}","slash":"a/b","quote":"\""}
+---
+{"text":"Line1\nLine2\u263A","emoji":"🚀","slash":"a/b","quote":"\""}
+
+=== array with empty structures nested
+[[],{},[[],{}],{}]
+---
+[[],{},[[],{}],{}]
+
+=== object trailing comma
+{"a":1,}
+---
+{"a":1}
+
+=== array trailing comma
+[1,2,3,]
+---
+[1,2,3]
+
+=== nested trailing commas
+{"a":[1,2,], "b":{"x":1,},}
+---
+{"a":[1,2],"b":{"x":1}}
+
+=== trailing comma after comment (object)
+{
+  "a": 1, # keep a
+}
+---
+{"a":1}
+
+=== trailing comma after comment (array)
+[
+  1, # first
+]
+---
+[1]
+
+=== array of objects with trailing commas
+[
+  {"id":1,},
+  {"id":2,},
+]
+---
+[{"id":1},{"id":2}]
+
+=== object with last value array trailing comma
+{"nums":[10,20,30,],}
+---
+{"nums":[10,20,30]}
+
+=== single-element array with trailing comma
+[42,]
+---
+[42]
+
+=== single-pair object with trailing comma and spaces
+{ "k": "v",  }
+---
+{"k":"v"}
+
+=== trailing comma and mixed whitespace
+{
+  "x" : {"y" : [0,1,2,] ,} ,
+}
+---
+{"x":{"y":[0,1,2]}}
+
+=== full-line comment before object
+# top-level note
+{"a":1}
+---
+{"a":1}
+
+=== multiple full-line comment before object + newlines
+# comment 1
+# comment 2
+# comment 3
+
+
+{"a":1}
+---
+{"a":1}
+
+=== inline comment after pair
+{"a":1 # apples
+}
+---
+{"a":1}
+
+=== inline comment after closing brace
+{"a":1} # done
+---
+{"a":1}
+
+=== comments between entries (object)
+{
+  "a": 1,  # first
+  # mid-line comment
+  "b": 2
+}
+---
+{"a":1,"b":2}
+
+=== comments between elements (array)
+[
+  1,  # one
+  # two incoming
+  2,
+  3 # last
+]
+---
+[1,2,3]
+
+=== comment between key and colon
+{
+  "a" # key a
+  : 1
+}
+---
+{"a":1}
+
+=== comment between colon and value
+{
+  "a": # value follows
+  1
+}
+---
+{"a":1}
+
+=== nested structure with comments
+{
+  "obj": {
+    # inside obj
+    "k": "v" # end
+  },
+  "arr": [
+    # within array
+    1,2 # end
+  ] # outer end
+}
+---
+{"obj":{"k":"v"},"arr":[1,2]}
+
+=== top-level number with trailing comment
+123 # count
+---
+123
+
+=== string containing hash (not a comment)
+"# not a comment"
+---
+"# not a comment"
+
+=== object with comment and trailing comma
+{
+  "a": 1, # trailing comma ok
+}
+---
+{"a":1}
+
+=== array with comment and trailing comma
+[
+  "x", # keep x
+]
+---
+["x"]
+
+=== trailing comma on both levels with comments
+{
+  "inner": {
+    "list": [
+      1, # a
+      2, # b
+    ], # list end
+  }, # inner end
+}
+---
+{"inner":{"list":[1,2]}}
+
+=== trailing comma after raw string with comment
+{
+  "text": "Line1\nLine2", # trailing
+}
+---
+{"text":"Line1\nLine2"}
+
+=== comments around commas in array
+[ 1 # a
+, 2 # b
+, 3 # c
+]
+---
+[1,2,3]
+
+=== array of objects with inline comments
+[
+  {"a":1} # first
+  , {"a":2} # second
+]
+---
+[{"a":1},{"a":2}]
+
+=== comment at EOF
+{"a":1} # EOF
+---
+{"a":1}
+
+=== multiple comment at EOF
+{"a":1} # comment 1
+# comment 2
+# comment 3
+---
+{"a":1}
+
+=== object with newline separators
+{"a":1
+"b":2}
+---
+{"a":1,"b":2}
+
+=== array with newline separators
+[1
+2
+3]
+---
+[1,2,3]
+
+=== nested with newline separators
+{
+  "a": [
+    1
+    2
+    3
+  ]
+  "b": {
+    "x": true
+    "y": null
+  }
+}
+---
+{"a":[1,2,3],"b":{"x":true,"y":null}}
+
+=== mix commas and newlines (array)
+[0
+1,2
+3]
+---
+[0,1,2,3]
+
+=== mix commas and newlines (object)
+{"a":1
+,"b":2
+,"c":3}
+---
+{"a":1,"b":2,"c":3}
+
+=== array of objects with newline separators
+[
+  {"id":1}
+  {"id":2}
+  {"id":3}
+]
+---
+[{"id":1},{"id":2},{"id":3}]
+
+=== object with arrays using newline separators
+{
+  "nums": [
+    10
+    20
+    30
+  ]
+  "strs": [
+    "a"
+    "b"
+  ]
+}
+---
+{"nums":[10,20,30],"strs":["a","b"]}
+
+=== array with comments and newline separators
+[
+  1  # one
+  2  # two
+  3  # three
+]
+---
+[1,2,3]
+
+=== object with comments and newline separators
+{
+  "a": 1  # first
+  "b": 2  # second
+  # end
+}
+---
+{"a":1,"b":2}
+
+=== consecutive newlines as separators (array)
+[1
+
+2
+
+
+
+3]
+---
+[1,2,3]
+
+=== consecutive newlines as separators (object)
+{
+  "a":1
+
+
+  "b":2
+}
+---
+{"a":1,"b":2}
+
+=== array with trailing newline before close
+[42
+
+]
+---
+[42]
+
+=== object with trailing newline before close
+{
+  "k": "v"
+
+}
+---
+{"k":"v"}
+
+=== interleaved comments and newlines (array)
+[
+  # start
+  100
+  # middle
+  200
+  # end
+]
+---
+[100,200]
+
+=== interleaved comments and newlines (object)
+{
+  # start
+  "x": true
+  # mid
+  "y": false
+}
+---
+{"x":true,"y":false}
+
+=== array of arrays with newline separators
+[
+  [1
+   2]
+  [3
+   4]
+]
+---
+[[1,2],[3,4]]
+
+=== object with special character keys (newline separators)
+{
+  "a-b":1
+  "a b":2
+  "a:b":3
+  "a,b":4
+}
+---
+{"a-b":1,"a b":2,"a:b":3,"a,b":4}
+
+=== object with special keys
+{
+  toString: 1
+  length: 2
+}
+---
+{"toString": 1, "length": 2}
+
+
+=== unicode values with newline separators
+{
+  "text": "Привет"
+  "emoji": "😀"
+  "u": "\u{263A}"
+}
+---
+{"text":"Привет","emoji":"😀","u":"\u263A"}
+
+=== exponents with newline separators (keep numeric forms)
+[
+  1e3
+  2E+2
+  7e-1
+]
+---
+[1e3,2E+2,7e-1]
+
+=== mixed whitespace + newline separators
+{  "a":1
+,  "b": { "x":2
+          "y":3 }
+,  "c": [ 4
+          5
+          6 ]  }
+---
+{"a":1,"b":{"x":2,"y":3},"c":[4,5,6]}
+
+=== mixed whitespace + comment + newline separator + trailing comma
+{  "a": 1  # comment
+,  }
+---
+{"a":1}
+
+=== identifier keys basic
+{a:1, b:2, c_3:3, foo-bar:4}
+---
+{"a":1,"b":2,"c_3":3,"foo-bar":4}
+
+=== identifier digit-only key (string in result)
+{1234:"id"}
+---
+{"1234":"id"}
+
+=== identifier with leading underscore
+{_private:true}
+---
+{"_private":true}
+
+=== identifier with hyphen and underscore
+{foo_bar-baz:42}
+---
+{"foo_bar-baz":42}
+
+=== mix quoted and identifier keys
+{foo:1,"bar":2,"baz-qux":3,quux_corge:4}
+---
+{"foo":1,"bar":2,"baz-qux":3,"quux_corge":4}
+
+=== digit-only identifiers with leading zeros (kept as strings)
+{0012:"pad",0:"zero"}
+---
+{"0012":"pad","0":"zero"}
+
+=== reserved words as identifier keys (treated as strings)
+{true:1,false:2,null:3}
+---
+{"true":1,"false":2,"null":3}
+
+=== nested objects with identifier keys
+{outer:{inner_key:{deep-n:7}}}
+---
+{"outer":{"inner_key":{"deep-n":7}}}
+
+=== array of objects with identifier keys
+[{id:1},{id:2},{user_name:"a-b"}]
+---
+[{"id":1},{"id":2},{"user_name":"a-b"}]
+
+=== identifier keys with comments and trailing comma
+{
+  a:1, # first
+  b:2, # second
+}
+---
+{"a":1,"b":2}
+
+=== identifier keys with newline separators (no commas)
+{
+  a:1
+  b:2
+  c_3:3
+}
+---
+{"a":1,"b":2,"c_3":3}
+
+=== identifier keys with newline separators and arrays
+{
+  items: [
+    1
+    2
+    3
+  ]
+  meta: {count:3}
+}
+---
+{"items":[1,2,3],"meta":{"count":3}}
+
+=== identifier keys with trailing comma after comment and newline
+{
+  key1: "v1", # comment
+  key2: "v2",
+}
+---
+{"key1":"v1","key2":"v2"}
+
+=== quoted unicode key next to identifier key
+{"Привет":"hi", world:"мир"}
+---
+{"Привет":"hi","world":"мир"}
+
+=== digit-only identifier keys nested
+{data:{1234:"id",5678:"id2"}}
+---
+{"data":{"1234":"id","5678":"id2"}}
+
+=== identifiers resembling exponents (letters + digits)
+{e10:1, E10:2}
+---
+{"e10":1,"E10":2}
+
+=== deep mix of quoted and identifier keys with newline separators
+{
+  a:{b:{c:1
+        "d-e":2}}
+  arr:[
+    {x:1}
+    {y:2}
+  ]
+}
+---
+{"a":{"b":{"c":1,"d-e":2}},"arr":[{"x":1},{"y":2}]}
+
+=== identifier keys with comments as separators
+{
+  first: 1  # keep
+  second: 2 # keep
+  # end
+}
+---
+{"first":1,"second":2}
+
+=== identifier keys with mixed separators (commas + newlines)
+{alpha:1
+,beta:2
+,gamma:3}
+---
+{"alpha":1,"beta":2,"gamma":3}
+
+=== raw string basic
+"""
+The quick brown
+fox jumps over
+the lazy dog.
+"""
+---
+"The quick brown\nfox jumps over\nthe lazy dog.\n"
+
+=== raw string no trailing newline
+"""
+The quick brown
+fox jumps over
+the lazy dog."""
+---
+"The quick brown\nfox jumps over\nthe lazy dog."
+
+=== leading spaces on first line are preserved
+"""
+  indented first line
+second line
+"""
+---
+"  indented first line\nsecond line\n"
+
+=== whitespace preserved exactly (matches your example)
+{
+  key: """
+    Roses are red,
+    Violets are blue;
+  """
+}
+---
+{"key":"    Roses are red,\n    Violets are blue;\n  "}
+
+=== escape sequences are literal (no interpretation)
+"""
+There is no escaping, so \n, \t, \u{0022} stay as-is.
+"""
+---
+"There is no escaping, so \\n, \\t, \\u{0022} stay as-is.\n"
+
+=== hash signs inside are content (not comments)
+"""
+# this is not a comment
+still content
+"""
+---
+"# this is not a comment\nstill content\n"
+
+=== allow one or two quotes inside (not three)
+"""
+He said ""hi"" and "ok".
+"""
+---
+"He said \"\"hi\"\" and \"ok\".\n"
+
+=== single-line raw string
+"""A raw string with "quotes" and '' inside."""
+---
+"A raw string with \"quotes\" and '' inside."
+
+=== empty raw string -> empty string
+"""
+"""
+---
+""
+
+=== single-space single-line raw string
+""" """
+---
+" "
+
+=== Windows-style path, backslashes preserved
+"""
+C:\Temp\new_folder\file.txt
+"""
+---
+"C:\\Temp\\new_folder\\file.txt\n"
+
+=== emoji and UTF-8 content
+"""
+😀 😁 😂
+Привет мир
+مرحبا بالعالم
+"""
+---
+"😀 😁 😂\nПривет мир\nمرحبا بالعالم\n"
+
+=== array of raw strings (newline as separators, no commas)
+[
+  """
+a
+b
+"""
+  """
+c
+d"""
+]
+---
+["a\nb\n","c\nd"]
+
+=== preserve interior blank lines
+"""
+top
+
+middle
+
+bottom
+"""
+---
+"top\n\nmiddle\n\nbottom\n"
+
+=== mix with comments and trailing comma (comments outside the string)
+{
+  poem: """
+Roses are red,
+Violets are blue.
+""" # keep poem
+}
+---
+{"poem":"Roses are red,\nViolets are blue.\n"}
+
+=== object with special keys
+{
+  toString: 1
+  length: 2
+}
+---
+{"toString": 1, "length": 2}
+
+=== unicode escape: minimum code point U+0000 short form
+"\u{0}"
+---
+"\u0000"
+
+=== unicode escape: DEL via escape U+007F
+"\u{7F}"
+---
+"\u007F"
+
+=== unicode escape: last code point before surrogate range U+D7FF
+"\u{D7FF}"
+---
+"\uD7FF"
+
+=== unicode escape: first code point after surrogate range U+E000
+"\u{E000}"
+---
+"\uE000"
+
+=== unicode escape: last BMP code point U+FFFF
+"\u{FFFF}"
+---
+"\uFFFF"
+
+=== unicode escape: first supplementary plane code point U+10000
+"\u{10000}"
+---
+"\uD800\uDC00"
+
+=== unicode escape: leading zeros in hex digits
+"\u{00263A}"
+---
+"\u263A"
+
+=== individual escape: double quote
+"\""
+---
+"\""
+
+=== individual escape: backslash
+"\\"
+---
+"\\"
+
+=== individual escape: newline
+"\n"
+---
+"\n"
+
+=== individual escape: carriage return
+"\r"
+---
+"\r"
+
+=== individual escape: tab
+"\t"
+---
+"\t"
