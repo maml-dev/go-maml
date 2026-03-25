@@ -16,14 +16,5 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Run coverage
-        run: go test ./... -coverprofile=coverage.out -count=1
-
-      - name: Check coverage threshold
-        run: |
-          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
-          echo "Total coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
-            echo "Coverage ${COVERAGE}% is below 90% threshold"
-            exit 1
-          fi
+      - name: Check coverage
+        run: npx zx .github/scripts/coverage.mjs
