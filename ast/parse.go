@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -31,7 +32,7 @@ func Parse(source string) (*Document, error) {
 		DanglingComments: []*CommentNode{},
 		Span:             Span{Start: docStart, End: docEnd},
 	}
-	attachComments(doc, p.comments, source)
+	attachDocumentComments(doc, p.comments)
 	attachBlankLines(doc.Value, source)
 	return doc, nil
 }
@@ -43,7 +44,7 @@ type parser struct {
 	lineNumber   int
 	columnNumber int
 	done         bool
-	comments     []*CommentNode
+	comments     []*CommentNode // comments of the innermost container being parsed
 }
 
 func newParser(source string) *parser {
@@ -336,6 +337,20 @@ func (p *parser) parseObject() (*ObjectNode, error) {
 	if p.ch != '{' {
 		return nil, nil
 	}
+	// Collect comments inside this object separately from the enclosing ones,
+	// so each comment is attached once by the container that owns it.
+	outer := p.comments
+	p.comments = nil
+	node, err := p.parseObjectBody()
+	if err != nil {
+		return nil, err
+	}
+	attachObjectComments(node, p.comments, p.source)
+	p.comments = outer
+	return node, nil
+}
+
+func (p *parser) parseObjectBody() (*ObjectNode, error) {
 	start := p.here()
 	p.next()
 	p.skipWhitespace()
@@ -436,6 +451,18 @@ func (p *parser) parseArray() (*ArrayNode, error) {
 	if p.ch != '[' {
 		return nil, nil
 	}
+	outer := p.comments
+	p.comments = nil
+	node, err := p.parseArrayBody()
+	if err != nil {
+		return nil, err
+	}
+	attachArrayComments(node, p.comments, p.source)
+	p.comments = outer
+	return node, nil
+}
+
+func (p *parser) parseArrayBody() (*ArrayNode, error) {
 	start := p.here()
 	p.next()
 	p.skipWhitespace()
@@ -672,135 +699,66 @@ func formatChar(ch byte, done bool) string {
 	return strconv.Quote(string(rune(ch)))
 }
 
-func positionAt(source string, offset int) Position {
-	if offset < 0 {
-		offset = 0
-	}
-	if offset > len(source) {
-		offset = len(source)
-	}
-	line := 1
-	col := 1
-	for i := 0; i < offset; i++ {
-		if source[i] == '\n' {
-			line++
-			col = 1
-		} else {
-			col++
-		}
-	}
-	return Position{Offset: offset, Line: line, Column: col}
-}
-
 // Comment attachment
 
-func attachComments(doc *Document, comments []*CommentNode, source string) {
-	if len(comments) == 0 {
-		return
-	}
-
+// attachDocumentComments splits top-level comments into those before and
+// after the document value. Comments inside the value are attached while
+// parsing its containers.
+func attachDocumentComments(doc *Document, comments []*CommentNode) {
 	valueStart := doc.Value.NodeSpan().Start.Offset
-	valueEnd := doc.Value.NodeSpan().End.Offset
-
-	var inside []*CommentNode
 	for _, c := range comments {
 		if c.Span.Start.Offset < valueStart {
 			doc.LeadingComments = append(doc.LeadingComments, c)
-		} else if c.Span.Start.Offset >= valueEnd {
+		} else {
 			doc.DanglingComments = append(doc.DanglingComments, c)
-		} else {
-			inside = append(inside, c)
 		}
-	}
-
-	if len(inside) > 0 {
-		distributeComments(doc.Value, inside, source)
 	}
 }
 
-func distributeComments(node ValueNode, comments []*CommentNode, source string) {
+// attachObjectComments attaches comments found directly inside node (not
+// inside its property values). Properties are sorted by position, so each
+// lookup is a binary search.
+func attachObjectComments(node *ObjectNode, comments []*CommentNode, source string) {
+	props := node.Properties
 	for _, c := range comments {
-		distributeComment(node, c, source)
-	}
-}
-
-// distributeComment attaches a single comment to node or one of its
-// descendants. Children of a container are sorted by position, so each
-// lookup is a binary search instead of a scan over all children.
-func distributeComment(node ValueNode, c *CommentNode, source string) {
-	switch n := node.(type) {
-	case *ObjectNode:
-		props := n.Properties
-		i := attachIndex(len(props), c, source, func(i int) ValueNode { return props[i].Value })
-		switch {
-		case i.nested >= 0:
-			distributeComment(props[i.nested].Value, c, source)
-		case i.trailing >= 0:
-			props[i.trailing].TrailingComment = c
-		default:
-			// Leading comment: first property whose key starts after the comment
-			j := searchInts(len(props), func(j int) bool { return c.Span.Start.Offset < props[j].Key.KeySpan().Start.Offset })
-			if j < len(props) {
-				props[j].LeadingComments = append(props[j].LeadingComments, c)
-			} else {
-				n.DanglingComments = append(n.DanglingComments, c)
-			}
-		}
-	case *ArrayNode:
-		elements := n.Elements
-		i := attachIndex(len(elements), c, source, func(i int) ValueNode { return elements[i].Value })
-		switch {
-		case i.nested >= 0:
-			distributeComment(elements[i.nested].Value, c, source)
-		case i.trailing >= 0:
-			elements[i.trailing].TrailingComment = c
-		default:
-			// Leading comment: first element that starts after the comment
-			j := searchInts(len(elements), func(j int) bool { return c.Span.Start.Offset < elements[j].Value.NodeSpan().Start.Offset })
-			if j < len(elements) {
-				elements[j].LeadingComments = append(elements[j].LeadingComments, c)
-			} else {
-				n.DanglingComments = append(n.DanglingComments, c)
-			}
-		}
-	}
-}
-
-type attachTarget struct {
-	nested   int // index of child value containing the comment, or -1
-	trailing int // index of child the comment trails, or -1
-}
-
-func attachIndex(count int, c *CommentNode, source string, value func(int) ValueNode) attachTarget {
-	off := c.Span.Start.Offset
-	// First child whose value ends after the comment start
-	k := searchInts(count, func(i int) bool { return value(i).NodeSpan().End.Offset > off })
-	if k < count && value(k).NodeSpan().Start.Offset <= off {
-		return attachTarget{nested: k, trailing: -1}
-	}
-	// Trailing: first child ending before the comment whose value starts on
-	// the comment's line (no newline between value start and comment).
-	lineStart := strings.LastIndexByte(source[:off], '\n')
-	t := searchInts(count, func(i int) bool { return value(i).NodeSpan().Start.Offset > lineStart })
-	if t < count && value(t).NodeSpan().End.Offset < off {
-		return attachTarget{nested: -1, trailing: t}
-	}
-	return attachTarget{nested: -1, trailing: -1}
-}
-
-// searchInts returns the smallest index i in [0, n) for which f(i) is true,
-// assuming f is monotonic, or n if there is none.
-func searchInts(n int, f func(int) bool) int {
-	lo, hi := 0, n
-	for lo < hi {
-		mid := int(uint(lo+hi) >> 1)
-		if f(mid) {
-			hi = mid
+		off := c.Span.Start.Offset
+		if i := trailingIndex(len(props), off, source, func(i int) ValueNode { return props[i].Value }); i >= 0 {
+			props[i].TrailingComment = c
+		} else if j := sort.Search(len(props), func(j int) bool { return off < props[j].Key.KeySpan().Start.Offset }); j < len(props) {
+			props[j].LeadingComments = append(props[j].LeadingComments, c)
 		} else {
-			lo = mid + 1
+			node.DanglingComments = append(node.DanglingComments, c)
 		}
 	}
-	return lo
+}
+
+// attachArrayComments attaches comments found directly inside node (not
+// inside its elements).
+func attachArrayComments(node *ArrayNode, comments []*CommentNode, source string) {
+	elements := node.Elements
+	for _, c := range comments {
+		off := c.Span.Start.Offset
+		if i := trailingIndex(len(elements), off, source, func(i int) ValueNode { return elements[i].Value }); i >= 0 {
+			elements[i].TrailingComment = c
+		} else if j := sort.Search(len(elements), func(j int) bool { return off < elements[j].Value.NodeSpan().Start.Offset }); j < len(elements) {
+			elements[j].LeadingComments = append(elements[j].LeadingComments, c)
+		} else {
+			node.DanglingComments = append(node.DanglingComments, c)
+		}
+	}
+}
+
+// trailingIndex returns the index of the child a comment at offset off
+// trails, or -1. That is the first child whose value starts on the
+// comment's line and ends before the comment, so in `a: 1, b: 2 # c`
+// the comment trails a.
+func trailingIndex(count, off int, source string, value func(int) ValueNode) int {
+	lineStart := strings.LastIndexByte(source[:off], '\n')
+	i := sort.Search(count, func(i int) bool { return value(i).NodeSpan().Start.Offset > lineStart })
+	if i < count && value(i).NodeSpan().End.Offset < off {
+		return i
+	}
+	return -1
 }
 
 func attachBlankLines(node ValueNode, source string) {
@@ -852,15 +810,6 @@ func attachBlankLines(node ValueNode, source string) {
 			attachBlankLines(elements[i].Value, source)
 		}
 	}
-}
-
-func hasNewlineBetween(source string, from, to int) bool {
-	for i := from; i < to && i < len(source); i++ {
-		if source[i] == '\n' {
-			return true
-		}
-	}
-	return false
 }
 
 func hasBlankLine(source string, from, to int) bool {

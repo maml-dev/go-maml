@@ -663,40 +663,6 @@ func TestFormatChar(t *testing.T) {
 	}
 }
 
-func TestPositionAt(t *testing.T) {
-	p := positionAt("ab\ncd", 0)
-	if p.Line != 1 || p.Column != 1 {
-		t.Errorf("expected line 1 col 1, got line %d col %d", p.Line, p.Column)
-	}
-	p = positionAt("ab\ncd", 3)
-	if p.Line != 2 || p.Column != 1 {
-		t.Errorf("expected line 2 col 1, got line %d col %d", p.Line, p.Column)
-	}
-	// Out of bounds
-	p = positionAt("ab", 100)
-	if p.Line != 1 || p.Column != 3 {
-		t.Errorf("expected line 1 col 3, got line %d col %d", p.Line, p.Column)
-	}
-	// Negative
-	p = positionAt("ab", -1)
-	if p.Line != 1 || p.Column != 1 {
-		t.Errorf("expected line 1 col 1, got line %d col %d", p.Line, p.Column)
-	}
-}
-
-func TestHasNewlineBetween(t *testing.T) {
-	if !hasNewlineBetween("ab\ncd", 0, 5) {
-		t.Error("expected newline")
-	}
-	if hasNewlineBetween("abcd", 0, 4) {
-		t.Error("expected no newline")
-	}
-	// Edge case: out of bounds
-	if hasNewlineBetween("ab", 0, 100) {
-		t.Error("should not crash on out-of-bounds")
-	}
-}
-
 func TestHasBlankLine(t *testing.T) {
 	if !hasBlankLine("a\n\nb", 0, 4) {
 		t.Error("expected blank line")
@@ -1156,6 +1122,66 @@ func BenchmarkParseCommentedArray(b *testing.B) {
 	}
 	sb.WriteString("]\n")
 	src := sb.String()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := Parse(src); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func TestTrailingCommentSameLine(t *testing.T) {
+	// A trailing comment attaches to the first value on its line.
+	doc, err := Parse("{a: 1, b: 2 # c\n}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj := doc.Value.(*ObjectNode)
+	if obj.Properties[0].TrailingComment == nil || obj.Properties[0].TrailingComment.Value != " c" {
+		t.Errorf("expected trailing comment on a, got %+v", obj.Properties[0].TrailingComment)
+	}
+	if obj.Properties[1].TrailingComment != nil {
+		t.Errorf("expected no trailing comment on b, got %+v", obj.Properties[1].TrailingComment)
+	}
+
+	// A value that starts on an earlier line does not take the comment.
+	doc, err = Parse("[\n  [\n    1\n  ], 2 # c\n]")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arr := doc.Value.(*ArrayNode)
+	if arr.Elements[0].TrailingComment != nil {
+		t.Errorf("expected no trailing comment on multi-line element, got %+v", arr.Elements[0].TrailingComment)
+	}
+	if arr.Elements[1].TrailingComment == nil {
+		t.Error("expected trailing comment on second element")
+	}
+}
+
+func TestDeeplyNestedComments(t *testing.T) {
+	const depth = 50
+	doc, err := Parse(strings.Repeat("[ # c\n", depth) + strings.Repeat("]", depth))
+	if err != nil {
+		t.Fatal(err)
+	}
+	node := doc.Value
+	for i := 0; i < depth; i++ {
+		arr := node.(*ArrayNode)
+		if i == depth-1 {
+			if len(arr.DanglingComments) != 1 {
+				t.Fatalf("level %d: expected 1 dangling comment, got %d", i, len(arr.DanglingComments))
+			}
+			break
+		}
+		if len(arr.Elements[0].LeadingComments) != 1 || len(arr.DanglingComments) != 0 {
+			t.Fatalf("level %d: expected 1 leading comment on element", i)
+		}
+		node = arr.Elements[0].Value
+	}
+}
+
+func BenchmarkParseDeeplyNestedComments(b *testing.B) {
+	src := strings.Repeat("[ # c\n", 10000) + strings.Repeat("]", 10000)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if _, err := Parse(src); err != nil {
