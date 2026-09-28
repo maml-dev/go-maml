@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -1144,5 +1145,21 @@ func TestErrorSnippetCeilCharBoundary(t *testing.T) {
 	_, err := Parse(input)
 	if err == nil {
 		t.Error("expected error for invalid input")
+	}
+}
+
+func BenchmarkParseCommentedArray(b *testing.B) {
+	var sb strings.Builder
+	sb.WriteString("[\n")
+	for i := 0; i < 10000; i++ {
+		sb.WriteString("  # leading\n  {a: 1, b: true} # trailing\n")
+	}
+	sb.WriteString("]\n")
+	src := sb.String()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := Parse(src); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
